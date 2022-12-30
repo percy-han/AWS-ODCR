@@ -159,8 +159,8 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-reservations-using.
  ## 创建Lambda
 
 ### 创建IAM Policy
-~$ cat odcr-iam-policy.json
-{
+`~$ cat odcr-iam-policy.json`  
+`{
     "Version": "2012-10-17",
     "Statement": [
         {
@@ -203,13 +203,13 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-reservations-using.
             "Resource": "*"
         }
     ]
-}  
+}`  
 #<your-path>为odcr-iam-policy.json文件本地路径  
 `~$ export odcr_iam_policy_name=<iam-policy-name>`  
 `~$ export odcr_policy_arn=$(aws iam create-policy --policy-name $odcr_iam_policy_name --policy-document file://<your-path>/odcr-iam-policy.json --tags Key=Project,Value=ODCR --region $AWS_Region --output text --query Policy.[Arn][0])`  
 ### 创建IAM Role并附加策略
-~$ cat iam-assume-role.json  
-{
+`~$ cat iam-assume-role.json`  
+`{
     "Version": "2012-10-17",
     "Statement": [
         {
@@ -220,7 +220,7 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-reservations-using.
             "Action": "sts:AssumeRole"
         }
     ]
-}  
+}`  
 #<your-path>为iam-assume-role.json文件本地路径  
 `~$ export odcr_role_name=<iam-role-name>`  
 `~$ export odcr_role_arn=$(aws iam create-role --role-name $odcr_role_name --assume-role-policy-document file://<your-path>/iam-assume-role.json --tags Key=Project,Value=ODCR --region $AWS_Region --output text --query Role.[Arn][0])`  
