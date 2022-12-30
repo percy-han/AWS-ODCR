@@ -7,29 +7,29 @@
 
 ## AWS Lambda
 
-一项无服务器事件驱动型计算服务，该服务使您可以运行几乎任何类型的应用程序或后端服务的代码，而无需预置或管理服务器。Lambda 在可用性高的计算基础设施上运行您的代码，执行计算资源的所有管理工作，其中包括服务器和操作系统维护、容量调配和弹性伸缩和记录。您可以从 200 多个 AWS 服务和软件即服务 (SaaS) 应用程序中触发 Lambda，且只需按您的使用量付费。
+一项无服务器事件驱动型计算服务，该服务使您可以运行几乎任何类型的应用程序或后端服务的代码，而无需预置或管理服务器。Lambda 在可用性高的计算基础设施上运行您的代码，执行计算资源的所有管理工作，其中包括服务器和操作系统维护、容量调配和弹性伸缩和记录。您可以从 200 多个 AWS 服务和软件即服务 (SaaS) 应用程序中触发 Lambda，且只需按您的使用量付费。  
 https://aws.amazon.com/cn/lambda/ 
 
 ## Amazon Aurora Serverless
 
-Amazon Aurora 的一种按需自动扩展配置版本。Amazon Aurora Serverless 会根据应用程序的需求自动启动、关闭以及扩展或缩减容量。 您可以在 AWS 上运行数据库，而无需管理数据库容量。手动管理数据库容量需要占用宝贵的时间，也可能导致数据库资源的使用效率低下。 借助 Aurora Serverless，您可以创建数据库，指定所需的数据库容量范围，然后连接您的应用程序。您需要在数据库处于活动状态期间按照每秒使用的数据库容量进行付费，并且只需在 Amazon Relational Database Service（Amazon RDS）控制台中执行几个步骤即可在标准配置和无服务器配置之间进行迁移。 
+Amazon Aurora 的一种按需自动扩展配置版本。Amazon Aurora Serverless 会根据应用程序的需求自动启动、关闭以及扩展或缩减容量。 您可以在 AWS 上运行数据库，而无需管理数据库容量。手动管理数据库容量需要占用宝贵的时间，也可能导致数据库资源的使用效率低下。 借助 Aurora Serverless，您可以创建数据库，指定所需的数据库容量范围，然后连接您的应用程序。您需要在数据库处于活动状态期间按照每秒使用的数据库容量进行付费，并且只需在 Amazon Relational Database Service（Amazon RDS）控制台中执行几个步骤即可在标准配置和无服务器配置之间进行迁移。  
 https://aws.amazon.com/cn/rds/aurora/serverless/?nc1=h_ls
 
 ## AWS ODCR
 
-On-Demand Capacity Reservations,通过使用按需容量预留，您可以在特定可用区中为Amazon EC2实例预留计算容量达任意持续时间。通过创建容量预留，可以确保您始终能够在需要时访问 EC2 容量。您随时可以创建容量预留，而无需作出一年或三年期限承诺。在您的账户中预置容量预留后，容量即可用且账单开始。当您不再需要它时，请取消容量预留以释放容量并停止产生费用。
-https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/ec2-capacity-reservations.html 
-https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.create_capacity_reservation
+On-Demand Capacity Reservations,通过使用按需容量预留，您可以在特定可用区中为Amazon EC2实例预留计算容量达任意持续时间。通过创建容量预留，可以确保您始终能够在需要时访问 EC2 容量。您随时可以创建容量预留，而无需作出一年或三年期限承诺。在您的账户中预置容量预留后，容量即可用且账单开始。当您不再需要它时，请取消容量预留以释放容量并停止产生费用。  
+https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/ec2-capacity-reservations.html  
+https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.create_capacity_reservation  
 
 ## Amazon EventBridge
 
-一种无服务器事件总线服务，让您可以轻松地将应用程序与来自各种源的数据相连接。 EventBridge 可以从应用程序、SaaS（Sa）应用程序和服务传输实时数据流，然后AWS将实时数据流传输到诸如AWS Lambda之类的目标、使用 API 目标的 HTTP 调用端点或其他AWS账户中的事件总线
-https://aws.amazon.com/cn/eventbridge/
-https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html 
+一种无服务器事件总线服务，让您可以轻松地将应用程序与来自各种源的数据相连接。 EventBridge 可以从应用程序、SaaS（Sa）应用程序和服务传输实时数据流，然后AWS将实时数据流传输到诸如AWS Lambda之类的目标、使用 API 目标的 HTTP 调用端点或其他AWS账户中的事件总线  
+https://aws.amazon.com/cn/eventbridge/  
+https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html  
 
 ## AWS Secrets Manager
 
-Secrets Manager 允许您将代码中的硬编码凭证（包括密码）替换为对 Secrets Manager 的 API 调用，以便以编程方式检索密钥。这有助于确保密钥不会被检查代码的人员泄露，因为密钥不再位于代码中。此外，您还可以配置 Secrets Manager 以根据指定的计划自动轮换密钥。这样，您就可以将长期密钥替换为短期密钥，从而显著降低泄露风险
+Secrets Manager 允许您将代码中的硬编码凭证（包括密码）替换为对 Secrets Manager 的 API 调用，以便以编程方式检索密钥。这有助于确保密钥不会被检查代码的人员泄露，因为密钥不再位于代码中。此外，您还可以配置 Secrets Manager 以根据指定的计划自动轮换密钥。这样，您就可以将长期密钥替换为短期密钥，从而显著降低泄露风险  
 https://aws.amazon.com/cn/secrets-manager/
 
 
@@ -43,7 +43,8 @@ Aurora数据库的表中存储了预留实例资源的相关信息，如实例�
 
 ## 网络配置
 
-Aurora和Lambda在同一个VPC内的不同的subnet中，也可部署在多个subnet上以提高可用性。另外，Lambda需要访问Aurora，并能通过互联网访问AWS服务（也可通过VPC Endpoint实现内网访问AWS服务）
+Aurora和Lambda在同一个VPC内的不同的subnet中，也可部署在多个subnet上以提高可用性。另外，Lambda需要访问Aurora，并能通过互联网访问AWS服务（也可通过VPC Endpoint实现内网访问AWS服务）  
+
 Subnet Name  | Subnet Type  | CIDR  | Application
  ---- | ----- | ------ | ------  
  Public_Subnet  | Public | 172.18.1.0/24 | NAT Gateway 
