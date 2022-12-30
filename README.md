@@ -60,7 +60,7 @@ Subnet Name  | Subnet Type  | CIDR  | Application
 整体方案部署完毕后，第一步需要对数据库进行初始化操作：创建表，插入数据，更改数据等常规CRUD操作。可使用Query Editor登陆到数据库以执行SQL(Lambda脚本中Initial_db_sql()函数也可进行相关SQL操作)
 ![image](https://github.com/percy-han/AWS-ODCR/blob/main/IMG/query-editor.png)
 ### 创建数据库
-`#创建Aurora时已经自动执行，不需要额外操作`  
+```#创建Aurora时已经自动执行，不需要额外操作```  
 `CREATE DATABASE IF NOT EXISTS <database> DEFAULT CHARACTER SET utf8`
 ### 创建资源需求元数据表
 #创建资源预留表，为保证数据唯一性，这里对InstanceType和AvailabilityZone列做了复合主键  
