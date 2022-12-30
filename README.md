@@ -45,8 +45,9 @@ Aurora数据库的表中存储了预留实例资源的相关信息，如实例�
 
 Aurora和Lambda在同一个VPC内的不同的subnet中，也可部署在多个subnet上以提高可用性。另外，Lambda需要访问Aurora，并能通过互联网访问AWS服务（也可通过VPC Endpoint实现内网访问AWS服务）
 
-Subnet Name｜Subnet	Type｜CIDR｜Application
+表头｜表头｜表头｜表头
 ----｜----｜----｜----
+Subnet Name｜Subnet	Type｜CIDR｜Application
 Public_Subnet｜Public｜172.18.1.0/24｜NAT Gateway
 Private_Subnet_DB_1｜Private｜172.18.2.0/24｜Aurora
 Private_Subnet_DB_2｜Private｜172.18.3.0/24｜Aurora
