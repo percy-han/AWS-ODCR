@@ -34,7 +34,7 @@ https://aws.amazon.com/cn/secrets-manager/
 
 
 整体架构
-IMG/architect.png
+![image](https://github.com/percy-han/AWS-ODCR/blob/main/IMG/architect.png)
  
 
 架构说明
