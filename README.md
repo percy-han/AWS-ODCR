@@ -60,15 +60,15 @@ Subnet Name  | Subnet Type  | CIDR  | Application
 整体方案部署完毕后，第一步需要对数据库进行初始化操作：创建表，插入数据，更改数据等常规CRUD操作。可使用Query Editor登陆到数据库以执行SQL(Lambda脚本中Initial_db_sql()函数也可进行相关SQL操作)
 ![image](https://github.com/percy-han/AWS-ODCR/blob/main/IMG/query-editor.png)
 ### 创建数据库
-`*#创建Aurora时已经自动执行，不需要额外操作*`  
+`#创建Aurora时已经自动执行，不需要额外操作`  
 `CREATE DATABASE IF NOT EXISTS <database> DEFAULT CHARACTER SET utf8`
 ### 创建资源需求元数据表
 #创建资源预留表，为保证数据唯一性，这里对InstanceType和AvailabilityZone列做了复合主键  
-CREATE Table IF NOT EXISTS <database>.odcr_capacity 
-(InstanceType varchar(255),
-AvailabilityZone varchar(255),PRIMARY KEY (InstanceType,AvailabilityZone),
-Target_Capacity int NOT NULL,
-Current_Capacity int DEFAULT 0)
+CREATE Table IF NOT EXISTS <database>.odcr_capacity  
+(InstanceType varchar(255),  
+AvailabilityZone varchar(255),PRIMARY KEY (InstanceType,AvailabilityZone),  
+Target_Capacity int NOT NULL,  
+Current_Capacity int DEFAULT 0)  
 ### 插入数据
 #根据具体的资源需求，在表中插入对应数据，当Target_Capacity> Current_Capacity时脚本会调用资源预留API。如：需要在ap-northeast-1c可用区预留15台r5b.2xlarge实例，则可执行以下SQL  
 INSERT INTO <database>.odcr_capacity VALUES ('r5b.2xlarge','ap-northeast-1c',15,0)
@@ -100,60 +100,60 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-reservations-using.
 ### 检查AWS CLI版本
 ~$ aws --version
 ### 创建VPC
-~$ export AWS_Region=<region_name>
-~$ export AWS_AZ_a=<az-a>
-~$ export AWS_AZ_c=<az-c>
+~$ export AWS_Region=<region_name>  
+~$ export AWS_AZ_a=<az-a>  
+~$ export AWS_AZ_c=<az-c>  
 ~$ export VPC_ID=$(aws ec2 create-vpc --cidr-block 172.18.0.0/16 --instance-tenancy default  --tag-specifications ResourceType=vpc,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query Vpc.[VpcId][0])
 ### 创建公有子网
 ~$ export Public_Subnet_ID=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_a --cidr-block 172.18.1.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])
 ### 分配EIP并创建NAT Gateway
-~$ export Allocation_ID=$(aws ec2 allocate-address --tag-specifications ResourceType=elastic-ip,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query AllocationId)
+~$ export Allocation_ID=$(aws ec2 allocate-address --tag-specifications ResourceType=elastic-ip,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query AllocationId)  
 ~$ export NatGW_ID=$(aws ec2 create-nat-gateway --subnet-id $Public_Subnet_ID --tag-specifications ResourceType=natgateway,Tags='[{Key=Project,Value=ODCR}]' --connectivity-type public --allocation-id $Allocation_ID --region $AWS_Region --output text --query NatGateway.[NatGatewayId][0])
 ### 创建Internet GateWay并附加到该VPC 
-~$ export IGW_ID=$(aws ec2 create-internet-gateway --tag-specifications ResourceType=internet-gateway,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query InternetGateway.[InternetGatewayId][0])
-aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID --region $AWS_Region
+~$ export IGW_ID=$(aws ec2 create-internet-gateway --tag-specifications ResourceType=internet-gateway,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query InternetGateway.[InternetGatewayId][0])  
+~$ aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID --region $AWS_Region
 ### 创建私有子网
-~$ export Private_Subnet_DB_1=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_a --cidr-block 172.18.2.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])
-~$ export Private_Subnet_DB_2=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_c --cidr-block 172.18.3.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])
-~$ export Private_Subnet_Lambda_1=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_a --cidr-block 172.18.4.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])
-~$ export Private_Subnet_Lambda_2=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_c --cidr-block 172.18.5.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])
+~$ export Private_Subnet_DB_1=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_a --cidr-block 172.18.2.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])  
+~$ export Private_Subnet_DB_2=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_c --cidr-block 172.18.3.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])  
+~$ export Private_Subnet_Lambda_1=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_a --cidr-block 172.18.4.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])  
+~$ export Private_Subnet_Lambda_2=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_c --cidr-block 172.18.5.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])  
 ### 配置主路由
 #关联公有子网并添加默认路由到IGW
-~$ export Main_Route_Table_ID=$(aws ec2 describe-route-tables --filters Name=vpc-id,Values=$VPC_ID --region $AWS_Region --output text --query RouteTables[0].[RouteTableId][0])
-~$ aws ec2 associate-route-table --route-table-id $Main_Route_Table_ID --subnet-id $Public_Subnet_ID --region $AWS_Region
+~$ export Main_Route_Table_ID=$(aws ec2 describe-route-tables --filters Name=vpc-id,Values=$VPC_ID --region $AWS_Region --output text --query RouteTables[0].[RouteTableId][0])  
+~$ aws ec2 associate-route-table --route-table-id $Main_Route_Table_ID --subnet-id $Public_Subnet_ID --region $AWS_Region  
 ~$ aws ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID --route-table-id $Main_Route_Table_ID --region $AWS_Region
 ### 配置私有路由
 #创建私有路由表
 ~$ export Private_Route_Table_ID=$(aws ec2 create-route-table --vpc-id $VPC_ID --tag-specifications ResourceType=route-table,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query RouteTable.[RouteTableId])
 #关联私有子网
-~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_DB_1 --region $AWS_Region
-~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_DB_2 --region $AWS_Region
-~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_Lambda_1 --region $AWS_Region
-~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_Lambda_2 --region $AWS_Region
+~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_DB_1 --region $AWS_Region  
+~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_DB_2 --region $AWS_Region  
+~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_Lambda_1 --region $AWS_Region  
+~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_Lambda_2 --region $AWS_Region  
 #添加默认路由到NAT GW
 ~$ aws ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id $NatGW_ID --route-table-id $Private_Route_Table_ID --region $AWS_Region
 ### 创建Security Group
 #创建Lambda SG，inbound rules保持为空，outbound rules可以放开所有
-~$ export ODCR_Lambda_SG_Name=<odcr-lambda-sg>
+~$ export ODCR_Lambda_SG_Name=<odcr-lambda-sg>  
 ~$ export ODCR_Lambda_SG_ID=$(aws ec2 create-security-group --description "odcr-lambda-sg" --group-name $ODCR_Lambda_SG_Name --vpc-id $VPC_ID --tag-specifications ResourceType=security-group,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query GroupId)
 #创建Aurora security group，inbound rules配置为允许上一步的Lambda的SG访问3306端口
-~$ export ODCR_RDS_SG_Name=<odcr-rds-sg>
-~$ export ODCR_RDS_SG_ID=$(aws ec2 create-security-group --description "odcr-rds-sg" --group-name $ODCR_RDS_SG_Name --vpc-id $VPC_ID --tag-specifications ResourceType=security-group,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query GroupId)
+~$ export ODCR_RDS_SG_Name=<odcr-rds-sg>  
+~$ export ODCR_RDS_SG_ID=$(aws ec2 create-security-group --description "odcr-rds-sg" --group-name $ODCR_RDS_SG_Name --vpc-id $VPC_ID --tag-specifications ResourceType=security-group,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query GroupId)  
 ~$ aws ec2 authorize-security-group-ingress --group-id $ODCR_RDS_SG_ID --protocol tcp --port 3306 --source-group $ODCR_Lambda_SG_ID --tag-specifications  ResourceType=security-group-rule,Tags='[{Key=Project,Value=ODCR}]'  --region $AWS_Region
 
  ## 创建Aurora 
 
 ### 创建Subnet Groups
-~$ export ODCR_RDS_Subnet_Group_Name=<odcr-rds-subnet-group>
-~$ aws rds create-db-subnet-group --db-subnet-group-name $ODCR_RDS_Subnet_Group_Name --db-subnet-group-description "ODCR RDS Subnet Group"  --subnet-ids $Private_Subnet_DB_1 $Private_Subnet_DB_2  --tags Key=Project,Value=ODCR --region $AWS_Region
+~$ export ODCR_RDS_Subnet_Group_Name=<odcr-rds-subnet-group>  
+~$ aws rds create-db-subnet-group --db-subnet-group-name $ODCR_RDS_Subnet_Group_Name --db-subnet-group-description "ODCR RDS Subnet Group"  --subnet-ids $Private_Subnet_DB_1 $Private_Subnet_DB_2  --tags Key=Project,Value=ODCR --region $AWS_Region  
 ### 创建Aurora Serverless 
-~$ export rds_username=<db_username>
-~$ export rds_password=<db_password>
-~$ export rds_db_cluster_identifier=<db_identifier>
-~$ export rds_endpoint=$(aws rds create-db-cluster --database-name odcr_db --db-cluster-identifier $rds_db_cluster_identifier --vpc-security-group-ids $ODCR_RDS_SG_ID --db-subnet-group-name $ODCR_RDS_Subnet_Group_Name --engine aurora --port 3306 --master-username $rds_username --master-user-password $rds_password  --engine-mode serverless --scaling-configuration MinCapacity=1,MaxCapacity=4,AutoPause=false,TimeoutAction=ForceApplyCapacityChange  --enable-http-endpoint --tags Key=Project,Value=ODCR --output text --query DBCluster.[Endpoint][0] --region $AWS_Region)
+~$ export rds_username=<db_username>  
+~$ export rds_password=<db_password>  
+~$ export rds_db_cluster_identifier=<db_identifier>  
+~$ export rds_endpoint=$(aws rds create-db-cluster --database-name odcr_db --db-cluster-identifier $rds_db_cluster_identifier --vpc-security-group-ids $ODCR_RDS_SG_ID --db-subnet-group-name $ODCR_RDS_Subnet_Group_Name --engine aurora --port 3306 --master-username $rds_username --master-user-password $rds_password  --engine-mode serverless --scaling-configuration MinCapacity=1,MaxCapacity=4,AutoPause=false,TimeoutAction=ForceApplyCapacityChange  --enable-http-endpoint --tags Key=Project,Value=ODCR --output text --query DBCluster.[Endpoint][0] --region $AWS_Region)  
 ## 创建Secret Manager
 
-~$ export secret_manager_rds_name=<secret-manager-name>
+~$ export secret_manager_rds_name=<secret-manager-name>  
 ~$ aws secretsmanager create-secret --name $secret_manager_rds_name --description "Credentials for serverless DB" --secret-string "{\"username\":\"${rds_username}\",\"password\":\"${rds_password}\",\"host\":\"${rds_endpoint}\",\"port\":3306,\"dbname\":\"odcr_db\"}" --tags Key=Project,Value=ODCR --region $AWS_Region
 
  ## 创建Lambda
@@ -204,11 +204,11 @@ aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID -
         }
     ]
 }
-#<your-path>为odcr-iam-policy.json文件本地路径
-~$ export odcr_iam_policy_name=<iam-policy-name>
-~$ export odcr_policy_arn=$(aws iam create-policy --policy-name $odcr_iam_policy_name --policy-document file://<your-path>/odcr-iam-policy.json --tags Key=Project,Value=ODCR --region $AWS_Region --output text --query Policy.[Arn][0])
+#<your-path>为odcr-iam-policy.json文件本地路径  
+~$ export odcr_iam_policy_name=<iam-policy-name>  
+~$ export odcr_policy_arn=$(aws iam create-policy --policy-name $odcr_iam_policy_name --policy-document file://<your-path>/odcr-iam-policy.json --tags Key=Project,Value=ODCR --region $AWS_Region --output text --query Policy.[Arn][0])  
 ### 创建IAM Role并附加策略
-~$ cat iam-assume-role.json
+~$ cat iam-assume-role.json  
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -221,37 +221,37 @@ aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID -
         }
     ]
 }
-#<your-path>为iam-assume-role.json文件本地路径
-~$ export odcr_role_name=<iam-role-name>
-~$ export odcr_role_arn=$(aws iam create-role --role-name $odcr_role_name --assume-role-policy-document file://<your-path>/iam-assume-role.json --tags Key=Project,Value=ODCR --region $AWS_Region --output text --query Role.[Arn][0])
+#<your-path>为iam-assume-role.json文件本地路径  
+~$ export odcr_role_name=<iam-role-name>  
+~$ export odcr_role_arn=$(aws iam create-role --role-name $odcr_role_name --assume-role-policy-document file://<your-path>/iam-assume-role.json --tags Key=Project,Value=ODCR --region $AWS_Region --output text --query Role.[Arn][0])  
 #附加自定义策略和托管策略
-~$ aws iam attach-role-policy --policy-arn $odcr_policy_arn --role-name $odcr_role_name --region $AWS_Region
-~$ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole --role-name $odcr_role_name --region $AWS_Region
-~$ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole --role-name $odcr_role_name --region $AWS_Region
+~$ aws iam attach-role-policy --policy-arn $odcr_policy_arn --role-name $odcr_role_name --region $AWS_Region  
+~$ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole --role-name $odcr_role_name --region $AWS_Region  
+~$ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole --role-name $odcr_role_name --region $AWS_Region  
 ### 创建Lambda Function
-下载Lambda deployment package odcr-deployment-package.zip到本地，链接可参考附件
-#<your-path>为odcr-deployment-package.zip文件本地路径
-~$ export odcr_lambda_name=<lambda-name>
-~$ export odcr_lambda_arn=$(aws lambda create-function \
-    --function-name $odcr_lambda_name \
-    --runtime python3.9 \
-    --architectures x86_64 \
-    --package-type Zip \
-    --zip-file fileb://<your-path>/odcr-deployment-package.zip \
-    --handler odcr_lambda.lambda_handler \
-    --timeout 300 \
-    --vpc-config SubnetIds=$Private_Subnet_Lambda_1,$Private_Subnet_Lambda_2,SecurityGroupIds=$ODCR_Lambda_SG_ID \
-    --environment "Variables={RegionName=$AWS_Region,SecretName=$secret_manager_rds_name}" \
-    --role $odcr_role_arn \
-    --tags Key=Project,Value=ODCR \
-    --region $AWS_Region \
-    --output text \
-    --query FunctionArn)
+下载Lambda deployment package odcr-deployment-package.zip到本地，链接可参考附件  
+#<your-path>为odcr-deployment-package.zip文件本地路径  
+~$ export odcr_lambda_name=<lambda-name>  
+~$ export odcr_lambda_arn=$(aws lambda create-function \  
+    --function-name $odcr_lambda_name \  
+    --runtime python3.9 \  
+    --architectures x86_64 \  
+    --package-type Zip \  
+    --zip-file fileb://<your-path>/odcr-deployment-package.zip \  
+    --handler odcr_lambda.lambda_handler \  
+    --timeout 300 \  
+    --vpc-config SubnetIds=$Private_Subnet_Lambda_1,$Private_Subnet_Lambda_2,SecurityGroupIds=$ODCR_Lambda_SG_ID \  
+    --environment "Variables={RegionName=$AWS_Region,SecretName=$secret_manager_rds_name}" \  
+    --role $odcr_role_arn \  
+    --tags Key=Project,Value=ODCR \  
+    --region $AWS_Region \  
+    --output text \  
+    --query FunctionArn)  
 ### 添加触发器
-#创建event bridge，其中：schedule-expression 'rate(5 minutes)  表示每5分钟执行一次
-~$ export event_bridge_arn=$(aws events put-rule --name my-scheduled-rule --schedule-expression 'rate(5 minutes)' --tags Key=Project,Value=ODCR --region $AWS_Region --output text --query RuleArn)
-~$ aws lambda add-permission --function-name $odcr_lambda_name --statement-id my-scheduled-event --action 'lambda:InvokeFunction' --principal events.amazonaws.com --source-arn $event_bridge_arn --region $AWS_Region
-~$ aws events put-targets --rule my-scheduled-rule --targets "Id"="1","Arn"=$odcr_lambda_arn --region $AWS_Region
+#创建event bridge，其中：schedule-expression 'rate(5 minutes)  表示每5分钟执行一次  
+~$ export event_bridge_arn=$(aws events put-rule --name my-scheduled-rule --schedule-expression 'rate(5 minutes)' --tags Key=Project,Value=ODCR --region $AWS_Region --output text --query RuleArn)  
+~$ aws lambda add-permission --function-name $odcr_lambda_name --statement-id my-scheduled-event --action 'lambda:InvokeFunction' --principal events.amazonaws.com --source-arn $event_bridge_arn --region $AWS_Region  
+~$ aws events put-targets --rule my-scheduled-rule --targets "Id"="1","Arn"=$odcr_lambda_arn --region $AWS_Region  
 
 # 结论
 通过EventBridge+Lambda+Aurora可以实现自动化对EC2实例进行资源预留，从而满足客户短期内的资源需求。同时采用serverless服务也可以最大程度上减少维护成本并实现成本节约。
