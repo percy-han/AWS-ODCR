@@ -57,7 +57,7 @@ Subnet Name  | Subnet Type  | CIDR  | Application
 ## 数据库初始化
 
 整体方案部署完毕后，第一步需要对数据库进行初始化操作：创建表，插入数据，更改数据等常规CRUD操作。可使用Query Editor登陆到数据库以执行SQL(Lambda脚本中Initial_db_sql()函数也可进行相关SQL操作)
- 
+![image](https://github.com/percy-han/AWS-ODCR/blob/main/IMG/query-editor.png)
 ### 创建数据库
 `#创建Aurora时已经自动执行，不需要额外操作  CREATE DATABASE IF NOT EXISTS <database> DEFAULT CHARACTER SET utf8`
 ### 创建资源需求元数据表
@@ -79,13 +79,13 @@ SELECT * FROM <database>.odcr_capacity
 ## 检查执行结果
 
 可在Lambda控制台的Monitor中查看相关执行log并在EC2控制台查看预留的资源
- 
-
+![image](https://github.com/percy-han/AWS-ODCR/blob/main/IMG/lambda-monitor.png)
+![image](https://github.com/percy-han/AWS-ODCR/blob/main/IMG/odcr1.png)
  
 ## 启动实例
 
 代码示例中创建的open模式的ODCR，因此在启动实例时只需要确保在对应可用区启动该实例类型的EC2即可，ODCR会被自动应用。
- 
+![image](https://github.com/percy-han/AWS-ODCR/blob/main/IMG/odcr2.png)
 https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-reservations-using.html#capacity-reservations-launch 
 注意：当使用ODCR实现了实例预留并且EC2实例成功启动后，即便实例终止也依然会对该ODCR收费，因此需要客户评估实例启动之后ODCR是否取消。
 
