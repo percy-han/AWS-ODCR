@@ -95,33 +95,32 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-reservations-using.
 该方案配置主要以AWS CLI方式来实现，要求CLI版本为2.0以上
 
 ## 创建网络
-
-•	检查AWS CLI版本
+### 检查AWS CLI版本
 ~$ aws --version
-•	创建VPC
+### 创建VPC
 ~$ export AWS_Region=<region_name>
 ~$ export AWS_AZ_a=<az-a>
 ~$ export AWS_AZ_c=<az-c>
 ~$ export VPC_ID=$(aws ec2 create-vpc --cidr-block 172.18.0.0/16 --instance-tenancy default  --tag-specifications ResourceType=vpc,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query Vpc.[VpcId][0])
-•	创建公有子网
+### 创建公有子网
 ~$ export Public_Subnet_ID=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_a --cidr-block 172.18.1.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])
-•	分配EIP并创建NAT Gateway
+### 分配EIP并创建NAT Gateway
 ~$ export Allocation_ID=$(aws ec2 allocate-address --tag-specifications ResourceType=elastic-ip,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query AllocationId)
 ~$ export NatGW_ID=$(aws ec2 create-nat-gateway --subnet-id $Public_Subnet_ID --tag-specifications ResourceType=natgateway,Tags='[{Key=Project,Value=ODCR}]' --connectivity-type public --allocation-id $Allocation_ID --region $AWS_Region --output text --query NatGateway.[NatGatewayId][0])
-•	创建Internet GateWay并附加到该VPC 
+### 创建Internet GateWay并附加到该VPC 
 ~$ export IGW_ID=$(aws ec2 create-internet-gateway --tag-specifications ResourceType=internet-gateway,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query InternetGateway.[InternetGatewayId][0])
 aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID --region $AWS_Region
-•	创建私有子网
+### 创建私有子网
 ~$ export Private_Subnet_DB_1=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_a --cidr-block 172.18.2.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])
 ~$ export Private_Subnet_DB_2=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_c --cidr-block 172.18.3.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])
 ~$ export Private_Subnet_Lambda_1=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_a --cidr-block 172.18.4.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])
 ~$ export Private_Subnet_Lambda_2=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_c --cidr-block 172.18.5.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])
-•	配置主路由
+### 配置主路由
 #关联公有子网并添加默认路由到IGW
 ~$ export Main_Route_Table_ID=$(aws ec2 describe-route-tables --filters Name=vpc-id,Values=$VPC_ID --region $AWS_Region --output text --query RouteTables[0].[RouteTableId][0])
 ~$ aws ec2 associate-route-table --route-table-id $Main_Route_Table_ID --subnet-id $Public_Subnet_ID --region $AWS_Region
 ~$ aws ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID --route-table-id $Main_Route_Table_ID --region $AWS_Region
-•	配置私有路由
+### 配置私有路由
 #创建私有路由表
 ~$ export Private_Route_Table_ID=$(aws ec2 create-route-table --vpc-id $VPC_ID --tag-specifications ResourceType=route-table,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query RouteTable.[RouteTableId])
 #关联私有子网
@@ -131,7 +130,7 @@ aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID -
 ~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_Lambda_2 --region $AWS_Region
 #添加默认路由到NAT GW
 ~$ aws ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id $NatGW_ID --route-table-id $Private_Route_Table_ID --region $AWS_Region
-•	创建Security Group
+### 创建Security Group
 #创建Lambda SG，inbound rules保持为空，outbound rules可以放开所有
 ~$ export ODCR_Lambda_SG_Name=<odcr-lambda-sg>
 ~$ export ODCR_Lambda_SG_ID=$(aws ec2 create-security-group --description "odcr-lambda-sg" --group-name $ODCR_Lambda_SG_Name --vpc-id $VPC_ID --tag-specifications ResourceType=security-group,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query GroupId)
@@ -142,10 +141,10 @@ aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID -
 
  ## 创建Aurora 
 
-•	创建Subnet Groups
+### 创建Subnet Groups
 ~$ export ODCR_RDS_Subnet_Group_Name=<odcr-rds-subnet-group>
 ~$ aws rds create-db-subnet-group --db-subnet-group-name $ODCR_RDS_Subnet_Group_Name --db-subnet-group-description "ODCR RDS Subnet Group"  --subnet-ids $Private_Subnet_DB_1 $Private_Subnet_DB_2  --tags Key=Project,Value=ODCR --region $AWS_Region
-•	创建Aurora Serverless 
+### 创建Aurora Serverless 
 ~$ export rds_username=<db_username>
 ~$ export rds_password=<db_password>
 ~$ export rds_db_cluster_identifier=<db_identifier>
@@ -157,7 +156,7 @@ aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID -
 
  ## 创建Lambda
 
-•	创建IAM Policy
+### 创建IAM Policy
 ~$ cat odcr-iam-policy.json
 {
     "Version": "2012-10-17",
@@ -206,7 +205,7 @@ aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID -
 #<your-path>为odcr-iam-policy.json文件本地路径
 ~$ export odcr_iam_policy_name=<iam-policy-name>
 ~$ export odcr_policy_arn=$(aws iam create-policy --policy-name $odcr_iam_policy_name --policy-document file://<your-path>/odcr-iam-policy.json --tags Key=Project,Value=ODCR --region $AWS_Region --output text --query Policy.[Arn][0])
-•	创建IAM Role并附加策略
+### 创建IAM Role并附加策略
 ~$ cat iam-assume-role.json
 {
     "Version": "2012-10-17",
@@ -227,7 +226,7 @@ aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID -
 ~$ aws iam attach-role-policy --policy-arn $odcr_policy_arn --role-name $odcr_role_name --region $AWS_Region
 ~$ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole --role-name $odcr_role_name --region $AWS_Region
 ~$ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole --role-name $odcr_role_name --region $AWS_Region
-•	创建Lambda Function
+### 创建Lambda Function
 下载Lambda deployment package odcr-deployment-package.zip到本地，链接可参考附件
 #<your-path>为odcr-deployment-package.zip文件本地路径
 ~$ export odcr_lambda_name=<lambda-name>
@@ -246,7 +245,7 @@ aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID -
     --region $AWS_Region \
     --output text \
     --query FunctionArn)
-•	添加触发器
+### 添加触发器
 #创建event bridge，其中：schedule-expression 'rate(5 minutes)  表示每5分钟执行一次
 ~$ export event_bridge_arn=$(aws events put-rule --name my-scheduled-rule --schedule-expression 'rate(5 minutes)' --tags Key=Project,Value=ODCR --region $AWS_Region --output text --query RuleArn)
 ~$ aws lambda add-permission --function-name $odcr_lambda_name --statement-id my-scheduled-event --action 'lambda:InvokeFunction' --principal events.amazonaws.com --source-arn $event_bridge_arn --region $AWS_Region
