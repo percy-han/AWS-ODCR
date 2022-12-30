@@ -63,12 +63,12 @@ Subnet Name  | Subnet Type  | CIDR  | Application
 `#创建Aurora时已经自动执行，不需要额外操作`  
 `CREATE DATABASE IF NOT EXISTS <database> DEFAULT CHARACTER SET utf8`
 ### 创建资源需求元数据表
-#创建资源预留表，为保证数据唯一性，这里对InstanceType和AvailabilityZone列做了复合主键  
+`#创建资源预留表，为保证数据唯一性，这里对InstanceType和AvailabilityZone列做了复合主键  
 CREATE Table IF NOT EXISTS <database>.odcr_capacity  
 (InstanceType varchar(255),  
 AvailabilityZone varchar(255),PRIMARY KEY (InstanceType,AvailabilityZone),  
 Target_Capacity int NOT NULL,  
-Current_Capacity int DEFAULT 0)  
+Current_Capacity int DEFAULT 0)`    
 ### 插入数据
 #根据具体的资源需求，在表中插入对应数据，当Target_Capacity> Current_Capacity时脚本会调用资源预留API。如：需要在ap-northeast-1c可用区预留15台r5b.2xlarge实例，则可执行以下SQL  
 INSERT INTO <database>.odcr_capacity VALUES ('r5b.2xlarge','ap-northeast-1c',15,0)
