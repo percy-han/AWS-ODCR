@@ -118,32 +118,32 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-reservations-using.
 ~$ export Private_Subnet_Lambda_1=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_a --cidr-block 172.18.4.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])  
 ~$ export Private_Subnet_Lambda_2=$(aws ec2 create-subnet --tag-specifications ResourceType=subnet,Tags='[{Key=Project,Value=ODCR}]' --availability-zone $AWS_AZ_c --cidr-block 172.18.5.0/24 --vpc-id $VPC_ID --region $AWS_Region --output text --query Subnet.[SubnetId][0])  
 ### 配置主路由
-#关联公有子网并添加默认路由到IGW
+#关联公有子网并添加默认路由到IGW  
 ~$ export Main_Route_Table_ID=$(aws ec2 describe-route-tables --filters Name=vpc-id,Values=$VPC_ID --region $AWS_Region --output text --query RouteTables[0].[RouteTableId][0])  
 ~$ aws ec2 associate-route-table --route-table-id $Main_Route_Table_ID --subnet-id $Public_Subnet_ID --region $AWS_Region  
 ~$ aws ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID --route-table-id $Main_Route_Table_ID --region $AWS_Region
 ### 配置私有路由
-#创建私有路由表
-~$ export Private_Route_Table_ID=$(aws ec2 create-route-table --vpc-id $VPC_ID --tag-specifications ResourceType=route-table,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query RouteTable.[RouteTableId])
-#关联私有子网
+#创建私有路由表  
+~$ export Private_Route_Table_ID=$(aws ec2 create-route-table --vpc-id $VPC_ID --tag-specifications ResourceType=route-table,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query RouteTable.[RouteTableId])  
+#关联私有子网  
 ~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_DB_1 --region $AWS_Region  
 ~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_DB_2 --region $AWS_Region  
 ~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_Lambda_1 --region $AWS_Region  
 ~$ aws ec2 associate-route-table --route-table-id $Private_Route_Table_ID --subnet-id $Private_Subnet_Lambda_2 --region $AWS_Region  
-#添加默认路由到NAT GW
-~$ aws ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id $NatGW_ID --route-table-id $Private_Route_Table_ID --region $AWS_Region
+#添加默认路由到NAT GW  
+~$ aws ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id $NatGW_ID --route-table-id $Private_Route_Table_ID --region $AWS_Region  
 ### 创建Security Group
-#创建Lambda SG，inbound rules保持为空，outbound rules可以放开所有
+#创建Lambda SG，inbound rules保持为空，outbound rules可以放开所有  
 ~$ export ODCR_Lambda_SG_Name=<odcr-lambda-sg>  
-~$ export ODCR_Lambda_SG_ID=$(aws ec2 create-security-group --description "odcr-lambda-sg" --group-name $ODCR_Lambda_SG_Name --vpc-id $VPC_ID --tag-specifications ResourceType=security-group,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query GroupId)
-#创建Aurora security group，inbound rules配置为允许上一步的Lambda的SG访问3306端口
+~$ export ODCR_Lambda_SG_ID=$(aws ec2 create-security-group --description "odcr-lambda-sg" --group-name $ODCR_Lambda_SG_Name --vpc-id $VPC_ID --tag-specifications ResourceType=security-group,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query GroupId)  
+#创建Aurora security group，inbound rules配置为允许上一步的Lambda的SG访问3306端口  
 ~$ export ODCR_RDS_SG_Name=<odcr-rds-sg>  
 ~$ export ODCR_RDS_SG_ID=$(aws ec2 create-security-group --description "odcr-rds-sg" --group-name $ODCR_RDS_SG_Name --vpc-id $VPC_ID --tag-specifications ResourceType=security-group,Tags='[{Key=Project,Value=ODCR}]' --region $AWS_Region --output text --query GroupId)  
-~$ aws ec2 authorize-security-group-ingress --group-id $ODCR_RDS_SG_ID --protocol tcp --port 3306 --source-group $ODCR_Lambda_SG_ID --tag-specifications  ResourceType=security-group-rule,Tags='[{Key=Project,Value=ODCR}]'  --region $AWS_Region
+~$ aws ec2 authorize-security-group-ingress --group-id $ODCR_RDS_SG_ID --protocol tcp --port 3306 --source-group $ODCR_Lambda_SG_ID --tag-specifications  ResourceType=security-group-rule,Tags='[{Key=Project,Value=ODCR}]'  --region $AWS_Region  
 
  ## 创建Aurora 
 
-### 创建Subnet Groups
+### 创建Subnet Groups  
 ~$ export ODCR_RDS_Subnet_Group_Name=<odcr-rds-subnet-group>  
 ~$ aws rds create-db-subnet-group --db-subnet-group-name $ODCR_RDS_Subnet_Group_Name --db-subnet-group-description "ODCR RDS Subnet Group"  --subnet-ids $Private_Subnet_DB_1 $Private_Subnet_DB_2  --tags Key=Project,Value=ODCR --region $AWS_Region  
 ### 创建Aurora Serverless 
@@ -154,7 +154,7 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-reservations-using.
 ## 创建Secret Manager
 
 ~$ export secret_manager_rds_name=<secret-manager-name>  
-~$ aws secretsmanager create-secret --name $secret_manager_rds_name --description "Credentials for serverless DB" --secret-string "{\"username\":\"${rds_username}\",\"password\":\"${rds_password}\",\"host\":\"${rds_endpoint}\",\"port\":3306,\"dbname\":\"odcr_db\"}" --tags Key=Project,Value=ODCR --region $AWS_Region
+~$ aws secretsmanager create-secret --name $secret_manager_rds_name --description "Credentials for serverless DB" --secret-string "{\"username\":\"${rds_username}\",\"password\":\"${rds_password}\",\"host\":\"${rds_endpoint}\",\"port\":3306,\"dbname\":\"odcr_db\"}" --tags Key=Project,Value=ODCR --region $AWS_Region  
 
  ## 创建Lambda
 
@@ -203,7 +203,7 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-reservations-using.
             "Resource": "*"
         }
     ]
-}
+}  
 #<your-path>为odcr-iam-policy.json文件本地路径  
 ~$ export odcr_iam_policy_name=<iam-policy-name>  
 ~$ export odcr_policy_arn=$(aws iam create-policy --policy-name $odcr_iam_policy_name --policy-document file://<your-path>/odcr-iam-policy.json --tags Key=Project,Value=ODCR --region $AWS_Region --output text --query Policy.[Arn][0])  
@@ -220,11 +220,11 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-reservations-using.
             "Action": "sts:AssumeRole"
         }
     ]
-}
+}  
 #<your-path>为iam-assume-role.json文件本地路径  
 ~$ export odcr_role_name=<iam-role-name>  
 ~$ export odcr_role_arn=$(aws iam create-role --role-name $odcr_role_name --assume-role-policy-document file://<your-path>/iam-assume-role.json --tags Key=Project,Value=ODCR --region $AWS_Region --output text --query Role.[Arn][0])  
-#附加自定义策略和托管策略
+#附加自定义策略和托管策略  
 ~$ aws iam attach-role-policy --policy-arn $odcr_policy_arn --role-name $odcr_role_name --region $AWS_Region  
 ~$ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole --role-name $odcr_role_name --region $AWS_Region  
 ~$ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole --role-name $odcr_role_name --region $AWS_Region  
